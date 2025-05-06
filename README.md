@@ -14,7 +14,7 @@ Este proyecto implementa un sistema de chat en tiempo real utilizando WebSocket 
 ## Estructura del Proyecto
 
 ```
-chat-websocket/
+act6_webSocket/
 ├── backend/
 │   ├── server.py                # Servidor WebSocket (Python)
 │   ├── utils.py                 # Funciones auxiliares
@@ -39,8 +39,8 @@ chat-websocket/
 
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/tu-usuario/chat-websocket.git
-   cd chat-websocket
+   git clone https://github.com/vilfredos/act6_webSocket.git
+   cd act6_webSocket
    ```
 
 2. Crea un entorno virtual y actívalo:
