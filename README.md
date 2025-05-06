@@ -45,14 +45,10 @@ chat-websocket/
 
 2. Crea un entorno virtual y actívalo:
    ```bash
-   # En Windows
    python -m venv env
    env\Scripts\activate
    
-   # En macOS/Linux
-   python3 -m venv env
-   source env/bin/activate
-   ```
+  
 
 3. Instala las dependencias:
    ```bash
