@@ -69,16 +69,7 @@ act6_webSocket/
 
 ### Iniciar el cliente
 
-1. Abre el archivo `frontend/index.html` en tu navegador web
-   - Puedes usar un servidor web simple para servir los archivos estáticos:
-     ```bash
-     # Con Python
-     # Desde el directorio frontend/
-     python -m http.server 8000
-     ```
-   - Luego abre http://localhost:8000 en tu navegador
-
-2. También puedes abrir el archivo directamente:
+ abrir el archivo directamente:
    - Haz doble clic en `frontend/index.html` para abrirlo con tu navegador predeterminado
 
 ## Uso
