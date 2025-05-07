@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const usernameModal = document.getElementById('username-modal');
     const newUsernameInput = document.getElementById('new-username');
     const usernameSubmitBtn = document.getElementById('username-submit');
+    const connectionText = document.getElementById('connection-text');
+    const onlineIndicator = document.querySelector('.online-indicator');
     
     // Variables WebSocket
     let socket;
@@ -27,64 +29,59 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Evento: Conexión establecida
         socket.addEventListener('open', (event) => {
-            connectionStatus.textContent = 'Conectado al servidor';
-            connectionStatus.classList.add('connected');
-            connectionStatus.classList.remove('disconnected');
-            messageInput.disabled = false;
-            sendButton.disabled = false;
-            reconnectAttempts = 0;
-            
+            updateConnectionStatus('connected');
             addSystemMessage('Conectado al servidor de chat');
         });
         
         // Evento: Mensaje recibido
         socket.addEventListener('message', (event) => {
-            const data = JSON.parse(event.data);
-            
-            // Procesar según el tipo de mensaje
-            switch (data.type) {
-                case 'connection_established':
-                    clientId = data.client_id;
-                    username = data.username;
-                    usernameDisplay.textContent = username;
-                    break;
-                    
-                case 'chat_message':
-                    addChatMessage(data.username, data.message, data.timestamp, data.username === username);
-                    break;
-                    
-                case 'user_event':
-                    const eventText = data.event === 'joined' ? 
-                        `${data.username} se ha unido al chat` : 
-                        `${data.username} ha abandonado el chat`;
-                    addSystemMessage(eventText, data.timestamp);
-                    break;
-                    
-                case 'username_changed':
-                    addSystemMessage(`${data.old_username} ha cambiado su nombre a ${data.new_username}`, data.timestamp);
-                    break;
-                    
-                case 'username_confirmation':
-                    username = data.username;
-                    usernameDisplay.textContent = username;
-                    break;
+            try {
+                const data = JSON.parse(event.data);
+                
+                // Procesar según el tipo de mensaje
+                switch (data.type) {
+                    case 'connection_established':
+                        clientId = data.client_id;
+                        username = data.username;
+                        usernameDisplay.textContent = username;
+                        break;
+                        
+                    case 'chat_message':
+                        addChatMessage(data.username, data.message, data.timestamp, data.username === username);
+                        break;
+                        
+                    case 'user_event':
+                        const eventText = data.event === 'joined' ? 
+                            `${data.username} se ha unido al chat` : 
+                            `${data.username} ha abandonado el chat`;
+                        addSystemMessage(eventText, data.timestamp);
+                        break;
+                        
+                    case 'username_changed':
+                        addSystemMessage(`${data.old_username} ha cambiado su nombre a ${data.new_username}`, data.timestamp);
+                        break;
+                        
+                    case 'username_confirmation':
+                        username = data.username;
+                        usernameDisplay.textContent = username;
+                        break;
+                }
+            } catch (error) {
+                console.error('Error al procesar el mensaje:', error);
+                addSystemMessage('Error al procesar el mensaje recibido');
             }
         });
         
         // Evento: Error en la conexión
         socket.addEventListener('error', (event) => {
-            console.error('Error en la conexión WebSocket:', event);
+            updateConnectionStatus('disconnected');
+            addSystemMessage('Error de conexión');
         });
         
         // Evento: Conexión cerrada
         socket.addEventListener('close', (event) => {
-            connectionStatus.textContent = 'Desconectado del servidor';
-            connectionStatus.classList.add('disconnected');
-            connectionStatus.classList.remove('connected');
-            messageInput.disabled = true;
-            sendButton.disabled = true;
-            
-            addSystemMessage('Desconectado del servidor de chat');
+            updateConnectionStatus('disconnected');
+            addSystemMessage('Desconectado del servidor');
             
             // Intentar reconectar
             if (reconnectAttempts < maxReconnectAttempts) {
@@ -92,34 +89,76 @@ document.addEventListener('DOMContentLoaded', () => {
                 const timeoutSeconds = (reconnectDelay / 1000) * reconnectAttempts;
                 addSystemMessage(`Intentando reconectar en ${timeoutSeconds} segundos... (Intento ${reconnectAttempts}/${maxReconnectAttempts})`);
                 
-                setTimeout(connectToServer, reconnectDelay * reconnectAttempts);
+                setTimeout(() => {
+                    updateConnectionStatus('connecting');
+                    connectToServer();
+                }, reconnectDelay * reconnectAttempts);
             } else {
                 addSystemMessage('No se pudo reconectar al servidor. Por favor, recarga la página.');
             }
         });
     }
     
+    // Función para actualizar el estado de conexión
+    function updateConnectionStatus(status) {
+        onlineIndicator.classList.remove('connected', 'disconnected', 'connecting');
+        
+        switch(status) {
+            case 'connected':
+                connectionText.textContent = 'Conectado';
+                onlineIndicator.classList.add('connected');
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                break;
+            case 'disconnected':
+                connectionText.textContent = 'Desconectado';
+                onlineIndicator.classList.add('disconnected');
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+                break;
+            case 'connecting':
+                connectionText.textContent = 'Conectando...';
+                onlineIndicator.classList.add('connecting');
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+                break;
+        }
+    }
+    
+    // Al iniciar, establecemos estado "conectando"
+    updateConnectionStatus('connecting');
+    
     // Función para enviar un mensaje de chat
     function sendChatMessage(message) {
+        if (!message || message.trim().length === 0) {
+            return;
+        }
+
         if (socket.readyState === WebSocket.OPEN) {
             const messagePacket = {
                 type: 'chat_message',
-                message: message
+                message: message.trim()
             };
             
             socket.send(JSON.stringify(messagePacket));
             messageInput.value = '';
         } else {
             addSystemMessage('No se pudo enviar el mensaje, conexión cerrada');
+            messageInput.value = '';
         }
     }
     
     // Función para cambiar nombre de usuario
     function changeUsername(newUsername) {
+        if (!newUsername || newUsername.trim().length === 0) {
+            addSystemMessage('El nombre de usuario no puede estar vacío');
+            return;
+        }
+
         if (socket.readyState === WebSocket.OPEN) {
             const usernamePacket = {
                 type: 'change_username',
-                username: newUsername
+                username: newUsername.trim()
             };
             
             socket.send(JSON.stringify(usernamePacket));
@@ -182,6 +221,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hours}:${minutes}:${seconds}`;
     }
     
+    // Función para procesar el cambio de nombre
+    function handleUsernameChange() {
+        const newUsername = newUsernameInput.value.trim();
+        if (newUsername && newUsername !== username) {
+            changeUsername(newUsername);
+            usernameModal.style.display = 'none';
+        }
+    }
+
     // Event Listeners
     sendButton.addEventListener('click', () => {
         const message = messageInput.value.trim();
@@ -205,14 +253,16 @@ document.addEventListener('DOMContentLoaded', () => {
         newUsernameInput.value = username;
         newUsernameInput.focus();
     });
-    
-    usernameSubmitBtn.addEventListener('click', () => {
-        const newUsername = newUsernameInput.value.trim();
-        if (newUsername && newUsername !== username) {
-            changeUsername(newUsername);
-            usernameModal.style.display = 'none';
+
+    // Añadir evento de tecla Enter al input de nombre de usuario
+    newUsernameInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            handleUsernameChange();
         }
     });
+
+    // Mantener el evento click del botón
+    usernameSubmitBtn.addEventListener('click', handleUsernameChange);
     
     // Cerrar modal haciendo clic fuera
     window.addEventListener('click', (event) => {

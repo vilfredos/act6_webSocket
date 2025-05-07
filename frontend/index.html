@@ -4,80 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat en Tiempo Real</title>
-    <style>
-        body { font-family: sans-serif; margin: 0; }
-    
-        .chat-messages {
-            height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
-        }
-    
-        .message {
-            margin: 5px 0;
-        }
-    
-        .user-message { text-align: right; }
-        .other-message { text-align: left; }
-    
-        .input-area {
-            display: flex;
-            padding: 10px;
-            border-top: 1px solid #ccc;
-        }
-    
-        #message-input {
-            flex: 1;
-            padding: 5px;
-        }
-    
-        #send-button {
-            padding: 5px 10px;
-            margin-left: 5px;
-        }
-    
-        .modal {
-            display: none;
-            position: fixed;
-            background: rgba(0,0,0,0.5);
-            top: 0; left: 0; right: 0; bottom: 0;
-            justify-content: center;
-            align-items: center;
-        }
-    
-        .modal-content {
-            background: #fff;
-            padding: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            Chat en Tiempo Real - <span id="username-display">Conectando...</span>
-            <button class="change-username" id="change-username-btn">Cambiar nombre</button>
+    <div class="app-container">
+        <!-- Panel informativo nuevo -->
+        <div class="info-panel">
+            <div class="info-header">
+                <h2>WebSocket</h2>
+            </div>
+            <div class="info-content">
+                <div class="info-section">
+                    <h3>🔥 Características</h3>
+                    <ul>
+                        <li>💬 Chat en tiempo real</li>
+                        <li>👤 Cambio de nombre de usuario</li>
+                        <li>🔄 Reconexión automática</li>
+                        <li>📨 Mensajes instantáneos</li>
+                        <li>🟢 Indicador de conexión</li>
+                    </ul>
+                </div>
+                
+                <div class="info-section">
+                    <h3>ℹ️ Instrucciones</h3>
+                    <ul>
+                        <li>✏️ Escribe tu mensaje en el campo de texto</li>
+                        <li>↩️ Presiona Enter o el botón Enviar</li>
+                        <li>🔄 Cambia tu nombre con el botón superior</li>
+                        <li>👥 Ve quién se conecta y desconecta</li>
+                    </ul>
+                </div>
+
+                <div class="info-section">
+                    <h3>🛠️ Tecnologías</h3>
+                    <ul>
+                        <li>⚡ WebSocket</li>
+                        <li>🐍 Python Backend</li>
+                        <li>🌐 JavaScript Frontend</li>
+                        <li>🎨 CSS Moderno</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        
-        <div class="chat-messages" id="chat-messages">
-            <!-- Los mensajes se añadirán aquí -->
-        </div>
-        
-        <div class="input-area">
-            <input type="text" id="message-input" placeholder="Escribe un mensaje..." disabled>
-            <button id="send-button" disabled>Enviar</button>
-        </div>
-        
-        <div class="connection-status" id="connection-status">
-            Conectando al servidor...
+
+        <!-- Chat container existente -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="header-title">
+                    <div class="connection-status">
+                        <span class="online-indicator"></span>
+                        <span id="connection-text">Desconectado</span>
+                    </div>
+                    Chat en Tiempo Real - <span id="username-display" class="username-display "></span>
+                </div>
+                <button class="change-username" id="change-username-btn">
+                    Cambiar nombre
+                </button>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <!-- Los mensajes se añadirán aquí -->
+            </div>
+            
+            <div class="input-area">
+                <input 
+                    type="text" 
+                    id="message-input" 
+                    placeholder="Escribe un mensaje..." 
+                    disabled
+                >
+                <button id="send-button" disabled>Enviar</button>
+            </div>
         </div>
     </div>
     
-    <!-- Modal para cambiar nombre de usuario -->
     <div id="username-modal" class="modal">
         <div class="modal-content">
             <h3>Cambiar nombre de usuario</h3>
-            <input type="text" id="new-username" placeholder="Nuevo nombre de usuario">
+            <input 
+                type="text" 
+                id="new-username" 
+                placeholder="Nuevo nombre de usuario"
+                maxlength="20"
+            >
             <button id="username-submit">Guardar</button>
         </div>
     </div>
